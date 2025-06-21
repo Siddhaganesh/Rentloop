@@ -1,18 +1,18 @@
 {
   "files": {
     "main.css": "/rentloop/static/css/main.8e06fa1a.css",
-    "main.js": "/rentloop/static/js/main.016f2d9d.js",
+    "main.js": "/rentloop/static/js/main.6df625a6.js",
     "static/js/453.63d2125f.chunk.js": "/rentloop/static/js/453.63d2125f.chunk.js",
     "static/media/rent.png": "/rentloop/static/media/rent.b2fb1f7514d2335e744c.png",
     "static/media/siddha.png": "/rentloop/static/media/siddha.de821f5e2f49b2c22982.png",
     "static/media/fam.png": "/rentloop/static/media/fam.cbdcf81faf57d5bdcc36.png",
     "index.html": "/rentloop/index.html",
     "main.8e06fa1a.css.map": "/rentloop/static/css/main.8e06fa1a.css.map",
-    "main.016f2d9d.js.map": "/rentloop/static/js/main.016f2d9d.js.map",
+    "main.6df625a6.js.map": "/rentloop/static/js/main.6df625a6.js.map",
     "453.63d2125f.chunk.js.map": "/rentloop/static/js/453.63d2125f.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.8e06fa1a.css",
-    "static/js/main.016f2d9d.js"
+    "static/js/main.6df625a6.js"
   ]
 }
