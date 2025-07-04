@@ -1,45 +1,46 @@
-// src/components/KYCStatus.jsx
-
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { auth, db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { Link } from 'react-router-dom'; // 👈 added
 
 const KYCStatus = () => {
-  const [kycStatus, setKycStatus] = useState("Not Submitted");
+  const [kycVerified, setKycVerified] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedStatus = localStorage.getItem("kycStatus");
-    if (storedStatus) {
-      setKycStatus(storedStatus);
-    }
+    const fetchKYC = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      try {
+        const docRef = doc(db, "kycStatus", user.email);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists() && docSnap.data().verified) {
+          setKycVerified(true);
+        } else {
+          setKycVerified(false);
+        }
+      } catch (error) {
+        console.error("Error fetching KYC status:", error);
+        setKycVerified(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchKYC();
   }, []);
 
-  const getStatusStyles = (status) => {
-    switch (status) {
-      case "Verified":
-        return "text-green-600 dark:text-green-400";
-      case "Pending":
-        return "text-yellow-600 dark:text-yellow-400";
-      case "Rejected":
-        return "text-red-600 dark:text-red-400";
-      default:
-        return "text-gray-600 dark:text-gray-300";
-    }
-  };
+  if (loading) return <p className="text-sm text-gray-500">Checking KYC status...</p>;
 
   return (
-    <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md mt-6 max-w-lg mx-auto">
-      <h2 className="text-xl font-bold text-indigo-600 dark:text-indigo-300 mb-4">KYC Status</h2>
-
-      <p className={`text-lg font-semibold ${getStatusStyles(kycStatus)}`}>
-        {kycStatus}
-      </p>
-
-      {kycStatus === "Not Submitted" && (
-        <p className="mt-4 text-sm">
-          You have not submitted your KYC yet.{" "}
-          <Link to="/kyc" className="text-indigo-600 underline hover:text-indigo-800 dark:hover:text-indigo-400">
-            Submit Now
-          </Link>
+    <div className="text-center mt-4 mb-10">
+      {kycVerified ? (
+        <p className="text-green-600 font-semibold text-lg">✅ KYC Verified</p>
+      ) : (
+        <p className="text-red-500 font-semibold text-lg">
+          ❌ KYC Not Verified — Please{" "}
+          <Link to="/kyc" className="underline text-indigo-600">complete your KYC</Link>
         </p>
       )}
     </div>

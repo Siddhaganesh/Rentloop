@@ -17,10 +17,10 @@ const PostItem = () => {
   const [success, setSuccess] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    const isAuth = localStorage.getItem('isAuthenticated') === 'true';
-    if (!isAuth) navigate('/login');
-  }, [navigate]);
+  // useEffect(() => {
+  //   const isAuth = localStorage.getItem('isAuthenticated') === 'true';
+  //   if (!isAuth) navigate('/login');
+  // }, [navigate]);
 
   const validate = () => {
     const newErrors = {};

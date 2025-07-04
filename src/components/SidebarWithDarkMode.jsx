@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Moon, Sun } from 'lucide-react';
@@ -12,6 +12,29 @@ function SidebarWithDarkMode({
   toggleSidebar
 }) {
   const navigate = useNavigate();
+  const timerRef = useRef(null);
+
+  // ⏱️ Auto-close sidebar after 5 seconds if opened
+  useEffect(() => {
+    if (isSidebarOpen) {
+      // Clear previous timer (if any)
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+
+      // Set a new timer
+      timerRef.current = setTimeout(() => {
+        toggleSidebar(); // auto-close
+      }, 3000); // 5 seconds
+    }
+
+    // Cleanup timer on unmount or when sidebar closes
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [isSidebarOpen, toggleSidebar]);
 
   const logoutAndRedirect = () => {
     localStorage.removeItem('isAuthenticated');
@@ -60,38 +83,35 @@ function SidebarWithDarkMode({
         </h2>
       )}
 
-     {/* Navigation */}
-<nav className="flex flex-col gap-3 mt-8 w-full px-2">
-  {/* Always visible */}
-  {navItem('/', 'Home', '🏠')}
-  {navItem('/browse', 'Browse', '🔍')}
-  {navItem('/aboutus', 'About Us', 'ℹ️')}
+      {/* Navigation */}
+      <nav className="flex flex-col gap-3 mt-8 w-full px-2">
+        {navItem('/', 'Home', '🏠')}
+        {navItem('/browse', 'Browse', '🔍')}
+        {navItem('/aboutus', 'About Us', 'ℹ️')}
 
-  {!isAuthenticated ? (
-    <>
-      {navItem('/login', 'Login', '🔐')}
-    </>
-  ) : (
-    <>
-      {navItem('/dashboard', 'Dashboard', '📊')}
-      {navItem('/post', 'Post Item', '📤')}
-      {navItem('/kyc', 'KYC', '🛂')}
+        {!isAuthenticated ? (
+          <>
+            {navItem('/login', 'Login', '🔐')}
+          </>
+        ) : (
+          <>
+            {navItem('/dashboard', 'Dashboard', '📊')}
+            {navItem('/post', 'Post Item', '📤')}
+            {navItem('/kyc', 'KYC', '🛂')}
 
-      {/* Divider */}
-      <div className="border-t border-gray-300 dark:border-gray-700 my-2" />
+            {/* Divider */}
+            <div className="border-t border-gray-300 dark:border-gray-700 my-2" />
 
-      <button
-        onClick={logoutAndRedirect}
-        className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-gray-800 transition"
-      >
-        <span>🚪</span>
-        {isSidebarOpen && <span>Logout</span>}
-
-      </button>
-    </>
-  )}
-</nav>
-
+            <button
+              onClick={logoutAndRedirect}
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-gray-800 transition"
+            >
+              <span>🚪</span>
+              {isSidebarOpen && <span>Logout</span>}
+            </button>
+          </>
+        )}
+      </nav>
 
       <div className="flex-grow" />
 

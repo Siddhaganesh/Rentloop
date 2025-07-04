@@ -1,40 +1,42 @@
-// src/components/Login.jsx
+// src/components/Signup.jsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { auth } from '../firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
-const Login = ({ handleLogin }) => {
-  const navigate = useNavigate();
+const Signup = ({ handleLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const handleLoginSubmit = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     setError('');
 
     if (!email || !password) {
-      setError('Please fill in both fields.');
+      setError('All fields are required.');
       return;
     }
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      localStorage.setItem('userEmail', user.email); // Optional
-      handleLogin(); // Notify App.js
+      // Inform App.js that user is authenticated
+      handleLogin();
+
+      // Redirect
       navigate('/dashboard');
     } catch (err) {
-      console.error('Login error:', err);
-      if (err.code === 'auth/user-not-found') {
-        setError('No account found for this email.');
-      } else if (err.code === 'auth/wrong-password') {
-        setError('Incorrect password.');
+      console.error('Signup error:', err.code, err.message);
+      if (err.code === 'auth/email-already-in-use') {
+        setError('Email already in use.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password should be at least 6 characters.');
       } else {
-        setError('Login failed. Please try again.');
+        setError('Signup failed. Please try again.');
       }
     }
   };
@@ -47,17 +49,19 @@ const Login = ({ handleLogin }) => {
       transition={{ duration: 0.6 }}
     >
       <motion.form
-        onSubmit={handleLoginSubmit}
+        onSubmit={handleSignup}
         className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 border border-indigo-200 dark:border-gray-800"
         initial={{ scale: 0.95 }}
         animate={{ scale: 1 }}
         transition={{ delay: 0.2 }}
       >
+        {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-extrabold text-indigo-700 dark:text-indigo-300">RentLoop</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Log in to continue renting</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Create a new account</p>
         </div>
 
+        {/* Error */}
         {error && (
           <motion.div
             className="text-red-500 mb-4 text-sm text-center"
@@ -68,25 +72,27 @@ const Login = ({ handleLogin }) => {
           </motion.div>
         )}
 
+        {/* Email */}
         <div className="mb-4">
           <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
           <input
             type="email"
+            className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white dark:border-gray-600"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white dark:border-gray-600"
             placeholder="you@example.com"
             required
           />
         </div>
 
+        {/* Password */}
         <div className="mb-6">
           <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
           <input
             type="password"
+            className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white dark:border-gray-600"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white dark:border-gray-600"
             placeholder="••••••••"
             required
           />
@@ -96,13 +102,13 @@ const Login = ({ handleLogin }) => {
           type="submit"
           className="w-full bg-indigo-600 text-white py-2 rounded-xl hover:bg-indigo-700 transition duration-300 font-semibold"
         >
-          Login
+          Sign Up
         </button>
 
         <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-4">
-          Don't have an account?{' '}
-          <Link to="/signup" className="text-indigo-600 hover:underline">
-            Create one
+          Already have an account?{' '}
+          <Link to="/login" className="text-indigo-600 hover:underline">
+            Log in here
           </Link>
         </p>
       </motion.form>
@@ -110,4 +116,4 @@ const Login = ({ handleLogin }) => {
   );
 };
 
-export default Login;
+export default Signup;
