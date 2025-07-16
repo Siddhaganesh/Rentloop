@@ -24,6 +24,10 @@ const Signup = ({ handleLogin }) => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      // ✅ Set manual login flag to fix auto-login issue
+      localStorage.setItem('manualLogin', 'true');
+      localStorage.setItem('userEmail', user.email); // Optional
+
       // Inform App.js that user is authenticated
       handleLogin();
 

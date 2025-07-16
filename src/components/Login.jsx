@@ -24,7 +24,10 @@ const Login = ({ handleLogin }) => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      // ✅ Fix for auto-login bug
+      localStorage.setItem('manualLogin', 'true');
       localStorage.setItem('userEmail', user.email); // Optional
+
       handleLogin(); // Notify App.js
       navigate('/dashboard');
     } catch (err) {

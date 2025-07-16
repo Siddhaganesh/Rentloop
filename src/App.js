@@ -42,10 +42,12 @@ function App() {
     localStorage.setItem('theme', newMode ? 'dark' : 'light');
   };
 
-  // Firebase auth + KYC status listener
+  // Firebase auth + KYC status listener (auto-login bug fixed)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
+      const manuallyLoggedIn = localStorage.getItem("manualLogin") === "true";
+
+      if (user && manuallyLoggedIn) {
         setUserEmail(user.email);
         setIsAuthenticated(true);
 
@@ -72,6 +74,7 @@ function App() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("manualLogin");
     setTimeout(() => {
       setIsAuthenticated(false);
       setKycVerified(false);
@@ -134,10 +137,9 @@ function App() {
           <Route path="/report" element={<ReportItem />} />
 
           <Route
-  path="/kyc"
-  element={<KYCPage onKYCComplete={() => setKycVerified(true)} />}
-/>
-
+            path="/kyc"
+            element={<KYCPage onKYCComplete={() => setKycVerified(true)} />}
+          />
 
           <Route
             path="/post"
