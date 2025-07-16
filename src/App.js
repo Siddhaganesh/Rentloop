@@ -12,6 +12,7 @@ import ReportItem from './components/ReportItem';
 import KYCPage from './components/KYCPage';
 import AboutUs from './components/AboutUs';
 import Signup from "./components/Signup";
+import Footer from "./components/footer"; // ✅ Added
 
 import { auth, db } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -24,7 +25,8 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState(null);
   const [kycVerified, setKycVerified] = useState(false);
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
+
 
   // Theme setup
   useEffect(() => {
@@ -100,58 +102,55 @@ function App() {
       />
 
       <main
-        className={`transition-all duration-300 min-h-screen flex-1 p-6 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
+        className={`transition-all duration-300 flex-1 p-6 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
           isSidebarOpen ? 'ml-60' : 'ml-16'
         }`}
       >
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-
-          <Route
-            path="/login"
-            element={
-              isAuthenticated ? (
-                <Navigate to="/dashboard" replace />
-              ) : (
-                <Login handleLogin={handleLogin} />
-              )
-            }
-          />
-
-          <Route
-            path="/signup"
-            element={<Signup handleLogin={handleLogin} />}
-          />
-
-          <Route
-            path="/dashboard"
-            element={
-              <RequireAuth>
-                <Dashboard handleLogout={handleLogout} />
-              </RequireAuth>
-            }
-          />
-
-          <Route path="/browse" element={<Browse />} />
-          <Route path="/aboutus" element={<AboutUs />} />
-          <Route path="/report" element={<ReportItem />} />
-
-          <Route
-            path="/kyc"
-            element={<KYCPage onKYCComplete={() => setKycVerified(true)} />}
-          />
-
-          <Route
-            path="/post"
-            element={
-              <RequireAuth>
-                <RequireKYC>
-                  <PostItem />
-                </RequireKYC>
-              </RequireAuth>
-            }
-          />
-        </Routes>
+        {/* Wrap routes and footer in a flex column */}
+        <div className="flex flex-col min-h-screen">
+          <div className="flex-grow">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route
+                path="/login"
+                element={
+                  isAuthenticated ? (
+                    <Navigate to="/dashboard" replace />
+                  ) : (
+                    <Login handleLogin={handleLogin} />
+                  )
+                }
+              />
+              <Route path="/signup" element={<Signup handleLogin={handleLogin} />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <RequireAuth>
+                    <Dashboard handleLogout={handleLogout} />
+                  </RequireAuth>
+                }
+              />
+              <Route path="/browse" element={<Browse />} />
+              <Route path="/aboutus" element={<AboutUs />} />
+              <Route path="/report" element={<ReportItem />} />
+              <Route
+                path="/kyc"
+                element={<KYCPage onKYCComplete={() => setKycVerified(true)} />}
+              />
+              <Route
+                path="/post"
+                element={
+                  <RequireAuth>
+                    <RequireKYC>
+                      <PostItem />
+                    </RequireKYC>
+                  </RequireAuth>
+                }
+              />
+            </Routes>
+          </div>
+          <Footer />
+        </div>
       </main>
     </div>
   );
