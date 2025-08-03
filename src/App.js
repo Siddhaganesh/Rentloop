@@ -45,22 +45,23 @@ function App() {
   };
 
   // Firebase auth + KYC status listener (auto-login bug fixed)
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      const manuallyLoggedIn = localStorage.getItem("manualLogin") === "true";
-
-      if (user && manuallyLoggedIn) {
+    useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
         setUserEmail(user.email);
         setIsAuthenticated(true);
 
-        try {
-          const docRef = doc(db, 'kycStatus', user.email);
-          const docSnap = await getDoc(docRef);
-          setKycVerified(docSnap.exists() && docSnap.data().verified === true);
-        } catch (error) {
-          console.error('Error fetching KYC:', error);
-          setKycVerified(false);
-        }
+        (async () => {
+          try {
+            const docRef = doc(db, 'kycStatus', user.email);
+            const docSnap = await getDoc(docRef);
+            setKycVerified(docSnap.exists() && docSnap.data().verified === true);
+          } catch (error) {
+            console.error('Error fetching KYC:', error);
+            setKycVerified(false);
+          }
+        })();
+
       } else {
         setUserEmail(null);
         setIsAuthenticated(false);
@@ -70,6 +71,7 @@ function App() {
 
     return () => unsubscribe();
   }, []);
+
 
   const handleLogin = () => {
     setIsAuthenticated(true);

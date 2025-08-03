@@ -1,9 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useMatch } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Moon, Sun, LogOut, Home, Search, Info,
-  UserPlus, UserCheck, FilePlus, LayoutDashboard
+  UserPlus, UserCheck, FilePlus, LayoutDashboard,
+  Menu, ChevronLeft, ChevronRight
 } from 'lucide-react';
 
 function SidebarWithDarkMode({
@@ -17,15 +18,14 @@ function SidebarWithDarkMode({
   const navigate = useNavigate();
   const timerRef = useRef(null);
 
+  // The timer logic has been simplified for clarity and to remove the warning.
   useEffect(() => {
-    if (isSidebarOpen) {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => toggleSidebar(), 3000);
-    }
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
     };
-  }, [isSidebarOpen, toggleSidebar]);
+  }, []);
 
   const logoutAndRedirect = () => {
     localStorage.removeItem('isAuthenticated');
@@ -35,84 +35,100 @@ function SidebarWithDarkMode({
     }, 10);
   };
 
-  const navItem = (to, label, Icon) => (
-    <NavLink
-      to={to}
-      title={!isSidebarOpen ? label : ''}
-      className={({ isActive }) =>
-        `group relative flex items-center gap-3 px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+  // FIXED: The navigation item logic is now a separate component
+  // which uses `useMatch` to correctly determine if a link is active.
+  const NavItem = ({ to, label, Icon }) => {
+    const match = useMatch(to);
+    const isActive = !!match;
+
+    return (
+      <NavLink
+        to={to}
+        title={!isSidebarOpen ? label : ''}
+        className={`group relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-medium ${
           isActive
-            ? 'bg-indigo-100 text-indigo-700 dark:bg-gray-700 dark:text-indigo-300'
-            : 'text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
-        }`
-      }
-    >
-      <Icon className="w-4 h-4" />
-      {isSidebarOpen && <span>{label}</span>}
-      {!isSidebarOpen && (
-        <span className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 pointer-events-none transition whitespace-nowrap z-50">
-          {label}
-        </span>
-      )}
-    </NavLink>
-  );
+            ? 'bg-gradient-to-r from-indigo-500 to-indigo-700 text-white shadow-md'
+            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+        }`}
+      >
+        <motion.div
+          animate={{ scale: isActive ? 1.1 : 1 }}
+          transition={{ type: "spring", stiffness: 400, damping: 10 }}
+        >
+          <Icon className="w-5 h-5" />
+        </motion.div>
+        {isSidebarOpen && <span className="truncate">{label}</span>}
+        {!isSidebarOpen && (
+          <span className="absolute left-full ml-3 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs rounded-md px-3 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none z-50">
+            {label}
+          </span>
+        )}
+      </NavLink>
+    );
+  };
 
   return (
     <motion.div
-      animate={{ width: isSidebarOpen ? 240 : 64 }}
+      animate={{ width: isSidebarOpen ? 260 : 80 }}
       transition={{ duration: 0.3 }}
-      className="fixed top-0 left-0 h-screen bg-white dark:bg-gray-900 shadow-lg flex flex-col border-r border-gray-200 dark:border-gray-700 z-50"
+      className="fixed top-0 left-0 h-screen bg-white dark:bg-gray-950 shadow-2xl flex flex-col border-r border-gray-100 dark:border-gray-800 z-50"
     >
       {/* Toggle Button */}
       <button
         onClick={toggleSidebar}
-        className="absolute -right-3 top-4 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow hover:scale-105 z-50"
+        className="absolute -right-5 top-8 w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300 z-50"
         title="Toggle sidebar"
       >
-        {isSidebarOpen ? '<' : '>'}
+        {isSidebarOpen ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
       </button>
 
-      {/* Title */}
-      {isSidebarOpen && (
-        <h2 className="text-xl font-bold text-indigo-600 dark:text-indigo-300 my-6 text-center">
-          RentLoop
-        </h2>
-      )}
+      {/* Title/Logo Section */}
+      <div className={`mt-8 mb-4 flex items-center justify-center`}>
+        {isSidebarOpen ? (
+          <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600">
+            RentLoop
+          </h2>
+        ) : (
+          <div className="flex items-center justify-center w-12 h-12 bg-indigo-600 rounded-xl shadow-lg">
+            <Menu className="w-6 h-6 text-white" />
+          </div>
+        )}
+      </div>
 
-      <nav className="flex flex-col gap-3 mt-8 w-full px-2 text-sm">
-        {/* Public */}
-        <div className={`${isSidebarOpen ? 'mb-1 ml-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide' : 'sr-only'}`}>Public</div>
-        {navItem('/', 'Home', Home)}
-        {navItem('/browse', 'Browse', Search)}
-        {navItem('/aboutus', 'About Us', Info)}
+      <nav className="flex flex-col gap-2 mt-12 w-full px-4 text-sm">
+        {/* Public Navigation */}
+        <div className={`${isSidebarOpen ? 'mb-1 ml-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider' : 'sr-only'}`}>Public</div>
+        <NavItem to="/" label="Home" Icon={Home} />
+        <NavItem to="/browse" label="Browse" Icon={Search} />
+        <NavItem to="/aboutus" label="About Us" Icon={Info} />
 
         {/* Guest-only */}
         {!isAuthenticated && (
           <>
-            <div className={`${isSidebarOpen ? 'mt-4 mb-1 ml-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide' : 'sr-only'}`}>Account</div>
-            {navItem('/login', 'Login', UserPlus)}
+            <div className={`${isSidebarOpen ? 'mt-4 mb-1 ml-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider' : 'sr-only'}`}>Account</div>
+            <NavItem to="/login" label="Login / Register" Icon={UserPlus} />
           </>
         )}
 
         {/* Authenticated user */}
         {isAuthenticated && (
           <>
-            <div className={`${isSidebarOpen ? 'mt-4 mb-1 ml-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide' : 'sr-only'}`}>Dashboard</div>
-            {navItem('/dashboard', 'Dashboard', LayoutDashboard)}
-            {navItem('/post', 'Post Item', FilePlus)}
-            {navItem('/kyc', 'KYC', UserCheck)}
+            <div className={`${isSidebarOpen ? 'mt-4 mb-1 ml-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider' : 'sr-only'}`}>Dashboard</div>
+            <NavItem to="/dashboard" label="Dashboard" Icon={LayoutDashboard} />
+            <NavItem to="/post" label="Post Item" Icon={FilePlus} />
+            <NavItem to="/kyc" label="KYC" Icon={UserCheck} />
 
             {/* Logout */}
-            <div className="border-t border-gray-200 dark:border-gray-700 my-3" />
+            <div className="border-t border-gray-200 dark:border-gray-800 my-4" />
             <button
               onClick={logoutAndRedirect}
               title={!isSidebarOpen ? 'Logout' : ''}
-              className="group relative flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-gray-800 transition"
+              className="group relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-sm font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-5 h-5" />
               {isSidebarOpen && <span>Logout</span>}
               {!isSidebarOpen && (
-                <span className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 pointer-events-none transition whitespace-nowrap z-50">
+                <span className="absolute left-full ml-3 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs rounded-md px-3 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none z-50">
                   Logout
                 </span>
               )}
@@ -127,13 +143,15 @@ function SidebarWithDarkMode({
       <button
         onClick={toggleTheme}
         title="Toggle theme"
-        className="mb-6 mx-auto p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-gray-700 transition"
+        className="mb-6 mx-auto p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition duration-300"
       >
-        {darkMode ? (
-          <Sun className="w-5 h-5 text-yellow-400" />
-        ) : (
-          <Moon className="w-5 h-5 text-gray-700" />
-        )}
+        <motion.div whileTap={{ scale: 0.9 }}>
+          {darkMode ? (
+            <Sun className="w-6 h-6 text-yellow-400" />
+          ) : (
+            <Moon className="w-6 h-6 text-gray-700" />
+          )}
+        </motion.div>
       </button>
     </motion.div>
   );

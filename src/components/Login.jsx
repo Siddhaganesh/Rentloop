@@ -10,35 +10,52 @@ const Login = ({ handleLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!email || !password) {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
       setError('Please fill in both fields.');
       return;
     }
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      setLoading(true);
+
+      const userCredential = await signInWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
       const user = userCredential.user;
 
-      // ✅ Fix for auto-login bug
+      // Save login info
       localStorage.setItem('manualLogin', 'true');
-      localStorage.setItem('userEmail', user.email); // Optional
+      localStorage.setItem('userEmail', user.email);
 
-      handleLogin(); // Notify App.js
+      handleLogin(); // notify App.jsx
       navigate('/dashboard');
     } catch (err) {
-      console.error('Login error:', err);
-      if (err.code === 'auth/user-not-found') {
-        setError('No account found for this email.');
-      } else if (err.code === 'auth/wrong-password') {
-        setError('Incorrect password.');
-      } else {
-        setError('Login failed. Please try again.');
+      console.error('Login failed:', err);
+      switch (err.code) {
+        case 'auth/user-not-found':
+          setError('No account found for this email.');
+          break;
+        case 'auth/wrong-password':
+          setError('Incorrect password.');
+          break;
+        case 'auth/invalid-email':
+          setError('Invalid email format.');
+          break;
+        case 'auth/too-many-requests':
+          setError('Too many failed attempts. Try again later.');
+          break;
+        default:
+          setError('Login failed. Please try again.');
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -97,9 +114,14 @@ const Login = ({ handleLogin }) => {
 
         <button
           type="submit"
-          className="w-full bg-indigo-600 text-white py-2 rounded-xl hover:bg-indigo-700 transition duration-300 font-semibold"
+          disabled={loading}
+          className={`w-full py-2 rounded-xl font-semibold transition duration-300 ${
+            loading
+              ? 'bg-indigo-400 cursor-not-allowed'
+              : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+          }`}
         >
-          Login
+          {loading ? 'Logging in...' : 'Login'}
         </button>
 
         <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-4">
